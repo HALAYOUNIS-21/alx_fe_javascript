@@ -1,4 +1,6 @@
 let quotes = [];
+const serverUrl = 'https://jsonplaceholder.typicode.com/posts'; // Mock API URL
+const syncInterval = 30000; // 30 seconds for syncing
 
 // Load quotes from local storage on page load
 window.onload = function() {
@@ -7,23 +9,13 @@ window.onload = function() {
     const lastCategory = localStorage.getItem("lastSelectedCategory") || "all";
     document.getElementById("categoryFilter").value = lastCategory;
     filterQuotes(); // Restore displayed quotes based on last selected category
+    startSyncing(); // Start syncing with the server
 };
 
 // Load quotes from local storage
 function loadQuotes() {
     const savedQuotes = localStorage.getItem("quotes");
-    if (savedQuotes) {
-        quotes = JSON.parse(savedQuotes);
-    } else {
-        // Initial default quotes
-        quotes = [
-            { text: "Quote 1", category: "inspiration" },
-            { text: "Quote 2", category: "life" },
-            { text: "Quote 3", category: "inspiration" },
-            { text: "Quote 4", category: "humor" },
-        ];
-        saveQuotes(); // Save default quotes to local storage
-    }
+    quotes = savedQuotes ? JSON.parse(savedQuotes) : [];
 }
 
 // Save quotes to local storage
@@ -36,6 +28,7 @@ function populateCategories() {
     const categoryFilter = document.getElementById("categoryFilter");
     const categories = [...new Set(quotes.map(quote => quote.category))]; // Extract unique categories
 
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>'; // Reset options
     categories.forEach(category => {
         const option = document.createElement("option");
         option.value = category;
@@ -88,10 +81,70 @@ document.getElementById("addQuoteButton").addEventListener("click", function() {
         displayQuotes(quotes); // Refresh the displayed quotes
         document.getElementById("newQuoteText").value = ''; // Clear input
         document.getElementById("newQuoteCategory").value = ''; // Clear input
+        
+        postQuoteToServer(newQuote); // Post new quote to server
     } else {
         alert("Please enter both quote and category.");
     }
 });
+
+// Function to post a new quote to the server
+function postQuoteToServer(quote) {
+    fetch(serverUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quote),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Quote posted to server:', data);
+    })
+    .catch((error) => {
+        console.error('Error posting quote to server:', error);
+    });
+}
+
+// Function to sync with the server periodically
+function startSyncing() {
+    setInterval(syncWithServer, syncInterval);
+}
+
+// Sync with the server and resolve conflicts
+function syncWithServer() {
+    fetch(serverUrl)
+        .then(response => response.json())
+        .then(serverQuotes => {
+            if (serverQuotes.length > 0) {
+                // Simple conflict resolution: use server data if it's different
+                serverQuotes.forEach(serverQuote => {
+                    const exists = quotes.some(quote => quote.text === serverQuote.text && quote.category === serverQuote.category);
+                    if (!exists) {
+                        quotes.push(serverQuote);
+                    }
+                });
+
+                saveQuotes(); // Save updated quotes to local storage
+                filterQuotes(); // Refresh displayed quotes
+                notifyUser('Data has been updated from the server.');
+            }
+        })
+        .catch((error) => {
+            console.error('Error syncing with server:', error);
+        });
+}
+
+// Notify user of updates
+function notifyUser(message) {
+    const notification = document.createElement("div");
+    notification.textContent = message;
+    notification.style.backgroundColor = "lightblue";
+    notification.style.padding = "10px";
+    notification.style.margin = "10px 0";
+    document.body.prepend(notification);
+    setTimeout(() => notification.remove(), 3000); // Remove after 3 seconds
+}
 
 // Import quotes from a JSON file
 function importFromJsonFile(event) {
