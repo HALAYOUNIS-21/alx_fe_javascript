@@ -17,6 +17,7 @@ function loadQuotes() {
 
 // Function to display a random quote
 function displayRandomQuote() {
+  // Check if there are quotes available
   if (quotes.length === 0) {
     document.getElementById("quoteText").textContent = "No quotes available.";
     document.getElementById("quoteCategory").textContent = "";
@@ -26,6 +27,7 @@ function displayRandomQuote() {
   const randomIndex = Math.floor(Math.random() * quotes.length);
   const randomQuote = quotes[randomIndex];
 
+  // Update the DOM with the random quote
   document.getElementById("quoteText").textContent = `"${randomQuote.text}"`;
   document.getElementById("quoteCategory").textContent = `Category: ${randomQuote.category}`;
 }
@@ -36,6 +38,7 @@ function addQuote() {
   const newQuoteCategory = document.getElementById("newQuoteCategory").value;
 
   if (newQuoteText && newQuoteCategory) {
+    // Add new quote to the quotes array
     quotes.push({ text: newQuoteText, category: newQuoteCategory });
 
     // Save quotes to local storage
@@ -45,13 +48,14 @@ function addQuote() {
     document.getElementById("newQuoteText").value = '';
     document.getElementById("newQuoteCategory").value = '';
 
-    displayRandomQuote(); // Show a new random quote after adding
+    // Display a random quote after adding
+    displayRandomQuote();
   } else {
     alert("Please fill in both the quote and category fields.");
   }
 }
 
-// Event listeners
+// Event listeners for buttons
 document.getElementById("newQuote").addEventListener("click", displayRandomQuote);
 document.getElementById("addQuoteButton").addEventListener("click", addQuote);
 
