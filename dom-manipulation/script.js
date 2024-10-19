@@ -3,13 +3,13 @@ const serverUrl = 'https://jsonplaceholder.typicode.com/posts'; // Mock API URL
 const syncInterval = 30000; // 30 seconds for syncing
 
 // Load quotes from local storage on page load
-window.onload = function() {
+window.onload = async function() {
     loadQuotes();
     populateCategories();
     const lastCategory = localStorage.getItem("lastSelectedCategory") || "all";
     document.getElementById("categoryFilter").value = lastCategory;
     filterQuotes(); // Restore displayed quotes based on last selected category
-    startSyncing(); // Start syncing with the server
+    await startSyncing(); // Start syncing with the server
 };
 
 // Load quotes from local storage
@@ -68,7 +68,7 @@ document.getElementById("newQuote").addEventListener("click", function() {
 });
 
 // Add a new quote
-document.getElementById("addQuoteButton").addEventListener("click", function() {
+document.getElementById("addQuoteButton").addEventListener("click", async function() {
     const newQuoteText = document.getElementById("newQuoteText").value;
     const newQuoteCategory = document.getElementById("newQuoteCategory").value;
 
@@ -82,60 +82,60 @@ document.getElementById("addQuoteButton").addEventListener("click", function() {
         document.getElementById("newQuoteText").value = ''; // Clear input
         document.getElementById("newQuoteCategory").value = ''; // Clear input
         
-        postQuoteToServer(newQuote); // Post new quote to server
+        await postQuoteToServer(newQuote); // Post new quote to server
     } else {
         alert("Please enter both quote and category.");
     }
 });
 
-// Fetch quotes from the server
-function fetchQuotesFromServer() {
-    fetch(serverUrl)
-        .then(response => response.json())
-        .then(serverQuotes => {
-            // Update local quotes with server quotes
-            handleServerQuotes(serverQuotes);
-        })
-        .catch((error) => {
-            console.error('Error fetching quotes from server:', error);
-        });
+// Fetch quotes from the server using async/await
+async function fetchQuotesFromServer() {
+    try {
+        const response = await fetch(serverUrl);
+        const serverQuotes = await response.json();
+        await handleServerQuotes(serverQuotes);
+    } catch (error) {
+        console.error('Error fetching quotes from server:', error);
+    }
 }
 
 // Handle quotes received from the server
-function handleServerQuotes(serverQuotes) {
-    serverQuotes.forEach(serverQuote => {
+async function handleServerQuotes(serverQuotes) {
+    const newQuotes = [];
+    
+    for (const serverQuote of serverQuotes) {
         const exists = quotes.some(quote => quote.text === serverQuote.title && quote.category === "default"); // Assuming "default" category for fetched data
         if (!exists) {
-            quotes.push({ text: serverQuote.title, category: "default" }); // Create a new quote object
+            newQuotes.push({ text: serverQuote.title, category: "default" }); // Create a new quote object
         }
-    });
+    }
 
+    quotes.push(...newQuotes); // Add new quotes to the existing array
     saveQuotes(); // Update local storage with new quotes
     filterQuotes(); // Refresh displayed quotes
     notifyUser('Data has been updated from the server.');
 }
 
-// Post a new quote to the server
-function postQuoteToServer(quote) {
-    fetch(serverUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title: quote.text, body: quote.category }), // Adjusting the structure for mock API
-    })
-    .then(response => response.json())
-    .then(data => {
+// Post a new quote to the server using async/await
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch(serverUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title: quote.text, body: quote.category }), // Adjusting the structure for mock API
+        });
+        const data = await response.json();
         console.log('Quote posted to server:', data);
-    })
-    .catch((error) => {
+    } catch (error) {
         console.error('Error posting quote to server:', error);
-    });
+    }
 }
 
 // Start syncing with the server periodically
-function startSyncing() {
-    fetchQuotesFromServer(); // Initial fetch
+async function startSyncing() {
+    await fetchQuotesFromServer(); // Initial fetch
     setInterval(fetchQuotesFromServer, syncInterval); // Periodic fetch
 }
 
