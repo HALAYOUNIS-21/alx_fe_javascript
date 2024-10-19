@@ -113,7 +113,7 @@ async function handleServerQuotes(serverQuotes) {
     quotes.push(...newQuotes); // Add new quotes to the existing array
     saveQuotes(); // Update local storage with new quotes
     filterQuotes(); // Refresh displayed quotes
-    notifyUser('Data has been updated from the server.');
+    notifyUser('Quotes synced with server!'); // Notification for data updates
 }
 
 // Post a new quote to the server using async/await
