@@ -133,10 +133,15 @@ async function postQuoteToServer(quote) {
     }
 }
 
+// Sync quotes with the server
+async function syncQuotes() {
+    await fetchQuotesFromServer(); // Fetch new quotes from the server
+}
+
 // Start syncing with the server periodically
 async function startSyncing() {
-    await fetchQuotesFromServer(); // Initial fetch
-    setInterval(fetchQuotesFromServer, syncInterval); // Periodic fetch
+    await syncQuotes(); // Initial fetch
+    setInterval(syncQuotes, syncInterval); // Periodic fetch
 }
 
 // Notify user of updates
