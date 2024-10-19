@@ -8,7 +8,7 @@ const defaultQuotes = [
   { text: "Life is 10% what happens to us and 90% how we react to it.", category: "Life" }
 ];
 
-// Load default quotes if quotes array is empty
+// Load quotes from local storage or use default quotes
 function loadQuotes() {
   const storedQuotes = JSON.parse(localStorage.getItem('quotes'));
   quotes = storedQuotes ? storedQuotes : [...defaultQuotes];
