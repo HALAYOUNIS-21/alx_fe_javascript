@@ -88,14 +88,41 @@ document.getElementById("addQuoteButton").addEventListener("click", function() {
     }
 });
 
-// Function to post a new quote to the server
+// Fetch quotes from the server
+function fetchQuotesFromServer() {
+    fetch(serverUrl)
+        .then(response => response.json())
+        .then(serverQuotes => {
+            // Update local quotes with server quotes
+            handleServerQuotes(serverQuotes);
+        })
+        .catch((error) => {
+            console.error('Error fetching quotes from server:', error);
+        });
+}
+
+// Handle quotes received from the server
+function handleServerQuotes(serverQuotes) {
+    serverQuotes.forEach(serverQuote => {
+        const exists = quotes.some(quote => quote.text === serverQuote.title && quote.category === "default"); // Assuming "default" category for fetched data
+        if (!exists) {
+            quotes.push({ text: serverQuote.title, category: "default" }); // Create a new quote object
+        }
+    });
+
+    saveQuotes(); // Update local storage with new quotes
+    filterQuotes(); // Refresh displayed quotes
+    notifyUser('Data has been updated from the server.');
+}
+
+// Post a new quote to the server
 function postQuoteToServer(quote) {
     fetch(serverUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(quote),
+        body: JSON.stringify({ title: quote.text, body: quote.category }), // Adjusting the structure for mock API
     })
     .then(response => response.json())
     .then(data => {
@@ -106,33 +133,10 @@ function postQuoteToServer(quote) {
     });
 }
 
-// Function to sync with the server periodically
+// Start syncing with the server periodically
 function startSyncing() {
-    setInterval(syncWithServer, syncInterval);
-}
-
-// Sync with the server and resolve conflicts
-function syncWithServer() {
-    fetch(serverUrl)
-        .then(response => response.json())
-        .then(serverQuotes => {
-            if (serverQuotes.length > 0) {
-                // Simple conflict resolution: use server data if it's different
-                serverQuotes.forEach(serverQuote => {
-                    const exists = quotes.some(quote => quote.text === serverQuote.text && quote.category === serverQuote.category);
-                    if (!exists) {
-                        quotes.push(serverQuote);
-                    }
-                });
-
-                saveQuotes(); // Save updated quotes to local storage
-                filterQuotes(); // Refresh displayed quotes
-                notifyUser('Data has been updated from the server.');
-            }
-        })
-        .catch((error) => {
-            console.error('Error syncing with server:', error);
-        });
+    fetchQuotesFromServer(); // Initial fetch
+    setInterval(fetchQuotesFromServer, syncInterval); // Periodic fetch
 }
 
 // Notify user of updates
