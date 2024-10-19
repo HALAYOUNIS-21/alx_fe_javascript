@@ -4,8 +4,8 @@ const quotes = [
     { text: "The purpose of our lives is to be happy.", category: "Happiness" }
   ];
   
-  // Function to display a random quote
-  function displayRandomQuote() {
+  // Function to display a random quote (renamed to showRandomQuote)
+  function showRandomQuote() {
     if (quotes.length === 0) {
       alert('No quotes available');
       return;
@@ -37,7 +37,7 @@ const quotes = [
     };
   
     quotes.push(newQuote); // Add the new quote to the array
-    displayRandomQuote(); // Update the display with the newly added quote
+    showRandomQuote(); // Update the display with the newly added quote
   
     // Clear the input fields
     document.getElementById('newQuoteText').value = '';
@@ -45,7 +45,7 @@ const quotes = [
   }
   
   // Event listener for the "Show New Quote" button
-  document.getElementById('newQuote').addEventListener('click', displayRandomQuote);
+  document.getElementById('newQuote').addEventListener('click', showRandomQuote);
   
   // Event listener for the "Add Quote" button
   document.getElementById('addQuoteButton').addEventListener('click', addQuote);
