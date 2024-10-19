@@ -6,7 +6,7 @@ window.onload = function() {
     populateCategories();
     const lastCategory = localStorage.getItem("lastSelectedCategory") || "all";
     document.getElementById("categoryFilter").value = lastCategory;
-    filterQuotes();
+    filterQuotes(); // Restore displayed quotes based on last selected category
 };
 
 // Load quotes from local storage
@@ -34,11 +34,7 @@ function saveQuotes() {
 // Populate categories in the dropdown
 function populateCategories() {
     const categoryFilter = document.getElementById("categoryFilter");
-    const categories = new Set();
-
-    quotes.forEach(quote => {
-        categories.add(quote.category);
-    });
+    const categories = [...new Set(quotes.map(quote => quote.category))]; // Extract unique categories
 
     categories.forEach(category => {
         const option = document.createElement("option");
@@ -83,12 +79,18 @@ document.getElementById("addQuoteButton").addEventListener("click", function() {
     const newQuoteText = document.getElementById("newQuoteText").value;
     const newQuoteCategory = document.getElementById("newQuoteCategory").value;
 
-    const newQuote = { text: newQuoteText, category: newQuoteCategory };
-    quotes.push(newQuote);
-    
-    saveQuotes(); // Save updated quotes to local storage
-    populateCategories(); // Update categories
-    displayQuotes(quotes); // Refresh the displayed quotes
+    if (newQuoteText && newQuoteCategory) {
+        const newQuote = { text: newQuoteText, category: newQuoteCategory };
+        quotes.push(newQuote);
+        
+        saveQuotes(); // Save updated quotes to local storage
+        populateCategories(); // Update categories
+        displayQuotes(quotes); // Refresh the displayed quotes
+        document.getElementById("newQuoteText").value = ''; // Clear input
+        document.getElementById("newQuoteCategory").value = ''; // Clear input
+    } else {
+        alert("Please enter both quote and category.");
+    }
 });
 
 // Import quotes from a JSON file
